@@ -67,8 +67,15 @@ async def health():
     return {"status": "ok"}
 
 
-@app.post("/scrape", response_model=ScrapeResponse, response_model_exclude_none=True)
-async def scrape(req: ScrapeRequest):
+@app.post(
+    "/scrape_web_page_to_markdown", 
+    response_model=ScrapeResponse, 
+    response_model_exclude_none=True,
+    operation_id="scrape_web_page_to_markdown",
+    summary="Extract clean text from a public URL",
+    description="Extracts clean, LLM-ready Markdown from any public URL. Use this when an agent needs to read a webpage's content, including JavaScript-rendered pages."
+)
+async def scrape_web_page_to_markdown(req: ScrapeRequest):
     return await scraper.scrape(
         url=req.url,
         fmt=req.format,
