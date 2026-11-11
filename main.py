@@ -29,13 +29,36 @@ app = FastAPI(
 
 
 class ScrapeRequest(BaseModel):
-    url: str = Field(..., examples=["https://example.com"], max_length=2048)
-    format: Literal["markdown", "json"] = "markdown"
-    render_js: bool = Field(True, description="Use headless Chromium (stealth). False = fast plain HTTP fetch.")
-    include_links: bool = Field(False, description="Keep hyperlinks in Markdown output.")
-    wait_until: Literal["domcontentloaded", "load", "networkidle"] = "domcontentloaded"
-    timeout: int = Field(30, ge=5, le=60, description="Seconds.")
-    bypass_cache: bool = False
+    url: str = Field(
+        ..., 
+        description="L'URL publique à scraper. Doit commencer par http:// ou https://.",
+        examples=["https://example.com", "https://fr.wikipedia.org/wiki/Intelligence_artificielle"],
+        max_length=2048
+    )
+    format: Literal["markdown", "json"] = Field(
+        "markdown", 
+        description="Format de sortie. 'markdown' est idéal pour la lecture, 'json' pour l'extraction de données structurées."
+    )
+    render_js: bool = Field(
+        True, 
+        description="True pour les sites modernes (React, Vue) nécessitant JavaScript. False pour les sites HTML statiques (réponse plus rapide)."
+    )
+    include_links: bool = Field(
+        False, 
+        description="Conserver les hyperliens dans la sortie Markdown."
+    )
+    wait_until: Literal["domcontentloaded", "load", "networkidle"] = Field(
+        "domcontentloaded",
+        description="Condition d'attente du chargement de la page."
+    )
+    timeout: int = Field(
+        30, ge=5, le=60, 
+        description="Délai d'attente maximum en secondes (entre 5 et 60)."
+    )
+    bypass_cache: bool = Field(
+        False, 
+        description="Forcer le scraping même si la page est dans le cache."
+    )
 
 
 class ScrapeResponse(BaseModel):
@@ -73,7 +96,14 @@ async def health():
     response_model_exclude_none=True,
     operation_id="scrape_web_page_to_markdown",
     summary="Extract clean text from a public URL",
-    description="Extracts clean, LLM-ready Markdown from any public URL. Use this when an agent needs to read a webpage's content, including JavaScript-rendered pages."
+    description="Extracts clean, LLM-ready Markdown from any public URL. Use this when an agent needs to read a webpage's content, including JavaScript-rendered pages.",
+    openapi_extra={
+        "x-mcp-annotations": {
+            "readOnlyHint": True,
+            "openWorldHint": True,
+            "destructiveHint": False
+        }
+    }
 )
 async def scrape_web_page_to_markdown(req: ScrapeRequest):
     return await scraper.scrape(
