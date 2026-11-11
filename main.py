@@ -62,17 +62,9 @@ class ScrapeRequest(BaseModel):
 
 
 class ScrapeResponse(BaseModel):
-    url: str
-    final_url: str
-    status_code: int
-    format: str
-    rendered: bool
     title: Optional[str] = None
     content: str
     data: Optional[dict[str, Any]] = None
-    cached: bool
-    elapsed_ms: int
-
 
 @app.exception_handler(ScrapeError)
 async def scrape_error_handler(_: Request, exc: ScrapeError):
